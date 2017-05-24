@@ -1,21 +1,21 @@
 from collections import Counter
 assignments = []
 
-
-def cross(A, B):
-    "Cross product of elements in A and elements in B."
-    return [s+t for s in A for t in B]
-
 rows = 'ABCDEFGHI'
 cols = '123456789'
- 
 
-boxes = cross(rows, cols)
-row_units = [cross(r, cols) for r in rows]
-column_units = [cross(rows, c) for c in cols]
-square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-diag1 = [a[0]+a[1] for a in zip(rows,cols)]
-diag2 = [a[0]+a[1] for a in zip(rows,cols[::-1])]
+"""
+Cross product of elements in A and elements in B."
+"""
+def cross(A, B):
+    return [s+t for s in A for t in B]
+
+boxes = cross(rows, cols) # Individual boxes in grid
+row_units = [cross(r, cols) for r in rows] #Rows boxes in grid
+column_units = [cross(rows, c) for c in cols] #Column boxed in grid
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')] # 3x3 square units
+diag1 = [a[0]+a[1] for a in zip(rows,cols)] # Boxes which form the diagonal in grid
+diag2 = [a[0]+a[1] for a in zip(rows,cols[::-1])] # Boxes which form the diagonal in grid
  
 unitlist = row_units + column_units + square_units +[diag1]+[diag2]
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
@@ -24,7 +24,7 @@ peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
 def assign_value(values, box, value):
     """
-    Please use this function to update your values dictionary!
+    This function is used to update the values in dictionary!
     Assigns a value to a given box. If it updates the board record it.
     """
 
@@ -38,7 +38,12 @@ def assign_value(values, box, value):
     
     return values
 
-
+"""
+In this function, we evaluate each unit repeatedly to remove numbers from possible values. 
+Unit in this case can be either a row, a column or a grid.Within the unit we look for cells 
+with only two possibilties and check if there are duplicates to it.We can detect digits in the duplicates 
+which cannot be used among other cells in the unit
+"""
 
 def naked_twins(grid):
     """Eliminate values using the naked twins strategy.
@@ -48,19 +53,21 @@ def naked_twins(grid):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-    
+    #Consider each of the unit in the entire unitlist.A unit, can be a single row/column/squareunit/diagonal
     for unit in unitlist:
         unit_count = {k:v for k, v in grid.items() if k in unit}       
-        #Build a counter for each of the units. If any 2 digits have counter > 2, then they are twins 
+        #Build a counter for each of the item values in the unit. 
         unit_count = Counter(unit_count.values())
+        #Lets go through each of the item in the given unit, looking for naked twins
         for item in unit:
             value = grid[item]
-            # if a 2 digit number has duplicates, then we proceed to remove some digits
+            #If any 2-digit item value has counter > 2,means we have spotted naked twins 
+            #We now proceed to remove digits in naked_twins from other cells in the unit
             if unit_count[value] >=2 and len(value) == 2:
-                # check acroos all items in the units except for duplicates and solved items
+                # check across all items in the unit except for naked twins and solved items
                 for item_inner in unit:
                     if grid[item_inner] != value and len(grid[item_inner]) >= 2:
-                        # consider each number/digit in the item value, remove those from neighbor boxes 
+                        # consider each number/digit in the item value, remove those from boxes 
                         for num in value:
                             if num in grid[item_inner]:
                                 grid[item_inner] = grid[item_inner].replace(num, '')
@@ -183,14 +190,9 @@ def solve(grid):
     else:
         return values
         
-def test():
-  #  print("inside test")
-    diag1 = [a[0]+a[1] for a in zip(rows,cols)]
-    diag2 = [a[0]+a[1] for a in zip(rows,cols[::-1])]
-  #  print("diagnal",diag2)
+ #  print("diagnal",diag2)
     
 if __name__ == '__main__':
-    test()
 
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
     display(solve(diag_sudoku_grid))
